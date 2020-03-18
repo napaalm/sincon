@@ -31,7 +31,7 @@ def print_format(res):
     for el in res:
         if el['class'][0] == 'search-results':
             print(re.sub(r'\.$', '', # toglie i punti alla fine, fastidiosi quando si copia una parola
-                         re.sub(r'(lett\.|sm\.|[A-Z]\w+\.|\d+\.)', r'\n\1 ', el.get_text()), # divide in righe le varie definizioni
+                         re.sub(r'(p\. u\.|intr\.|lett\.|sm\.|[A-Z]\w+\.|\d+\.)', r'\n\1 ', el.get_text()), # divide in righe le varie definizioni
                          flags=re.M))
             print()
         elif el['class'][0] == 'listOthersTerms':
