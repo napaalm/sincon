@@ -5,7 +5,7 @@
      _
  ___(_)_ __   ___ ___  _ __
 / __| | '_ \ / __/ _ \| '_ \
-\__ \ | | | | (_| (_) | | | |
+        \__ \ | | | | (_| (_) | | | |
 |___/_|_| |_|\___\___/|_| |_|
 
 Semplice wrapper script che permette di ottenere sinonimi e contrari di una parola da www.sinonimi-contrari.it
@@ -32,25 +32,33 @@ def print_format(res):
     for el in res:
         if el['class'][0] == 'search-results':
             print(re.sub(r'\.$', '', # toglie i punti alla fine, fastidiosi quando si copia una parola
-                         re.sub(r'(p\. u\.|intr\.|lett\.|sm\.|[A-Z]\w+\.|\d+\.)', r'\n\1 ', el.get_text()), # divide in righe le varie definizioni
-                         flags=re.M))
+                re.sub(r'(p\. u\.|intr\.|lett\.|sm\.|[A-Z]\w+\.|\d+\.)', r'\n\1 ', el.get_text()), # divide in righe le varie definizioni
+                flags=re.M))
             print()
         elif el['class'][0] == 'listOthersTerms':
             print(re.sub(r'\.$', '',
-                         re.sub(r':', r': ', el.get_text()),
-                         flags=re.M))
+                re.sub(r':', r': ', el.get_text()),
+                flags=re.M))
             print()
 
 def to_json(res): # TODO: stolido, cargo
     r = {}
+    b = True
     for el in res:
         if el['class'][0] == 'search-results':
+            if (el.p.get_text() if el.p else None) == f'Il dizionario non contiene ancora sinonimi di {word}':
+                b = False
+
             for li in el.ol.findChildren('li') if el.ol else []:
                 c = li.findChildren('span')
                 r.setdefault(c[0].get_text(), []).extend(c[1].get_text().split(', '))
 
         elif el['class'][0] == 'listOthersTerms':
             r['altri'] = list(map(lambda x: x.get_text(), el.p.findChildren('a')))
+
+    if b and 'altri' in r:
+        r['1.'] = r['altri']
+        del r['altri']
 
     return r
 
@@ -88,6 +96,6 @@ if args.json:
 else:
     print(f"\nSINONIMI di {word}")
     print_format(syn)
-    
+
     print(f"CONTRARI di {word}")
     print_format(con)
