@@ -5,7 +5,7 @@
      _
  ___(_)_ __   ___ ___  _ __
 / __| | '_ \ / __/ _ \| '_ \
-        \__ \ | | | | (_| (_) | | | |
+\__ \ | | | | (_| (_) | | | |
 |___/_|_| |_|\___\___/|_| |_|
 
 Semplice wrapper script che permette di ottenere sinonimi e contrari di una parola da www.sinonimi-contrari.it
