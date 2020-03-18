@@ -17,7 +17,7 @@ Questo software è rilasciato sotto licenza GPLv3
 
 __author__ = 'Antonio Napolitano'
 __license__ = 'GPLv3'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import re
 import requests
