@@ -23,6 +23,7 @@ import re
 import requests
 import sys
 import bs4
+import argparse
 
 WEBSITE = "https://www.sinonimi-contrari.it/"
 
@@ -51,11 +52,11 @@ def split_syncon(tags):
 
     return (syn[1:], con[1:])
 
-if len(sys.argv) != 2:
-    print(f"Utilizzo: {sys.argv[0]} PAROLA")
-    exit(1)
+parser = argparse.ArgumentParser(description='Semplice wrapper script che permette di ottenere sinonimi e contrari di una parola da www.sinonimi-contrari.it')
+parser.add_argument('word', type=str, nargs=1, help='parola da cercare')
+args = parser.parse_args()
 
-word = sys.argv[1]
+word = args.word[0]
 
 r = requests.get(WEBSITE+word)
 tags = bs4.BeautifulSoup(r.text, 'html.parser').find('div', {'class': 'termWrap'}).find_all(recursive=False)
