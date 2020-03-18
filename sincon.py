@@ -40,6 +40,20 @@ def print_format(res):
                          flags=re.M))
             print()
 
+def to_json(res):
+    r = []
+    for el in res:
+        if el['class'][0] == 'search-results':
+            r += re.sub(r'\.$', '', # toglie i punti alla fine, fastidiosi quando si copia una parola
+                         re.sub(r'(lett\.|sm\.|[A-Z]\w+\.|\d+\.)', r'\n\1 ', el.get_text()), # divide in righe le varie definizioni
+                         flags=re.M).split(', ')
+
+        elif el['class'][0] == 'listOthersTerms':
+            r += re.sub(r'\.$', '',
+                         re.sub(r':', r': ', el.get_text()),
+                         flags=re.M).split(', ')
+    return r
+
 def split_syncon(tags):
     for i in range(len(tags)):
         if tags[i].name == 'hr':
@@ -47,13 +61,17 @@ def split_syncon(tags):
             con = tags[i+1:]
             break
     if 'syn' not in locals():
-        print("La parola cercata non esiste nel dizionario", file=sys.stderr)
+        if args.json:
+            print({'status': 'not found'})
+        else:
+            print("La parola cercata non esiste nel dizionario", file=sys.stderr)
         exit(1)
 
     return (syn[1:], con[1:])
 
 parser = argparse.ArgumentParser(description='Semplice wrapper script che permette di ottenere sinonimi e contrari di una parola da www.sinonimi-contrari.it')
 parser.add_argument('word', type=str, nargs=1, help='parola da cercare')
+parser.add_argument('-j', '--json', action='store_true', help='print output in json')
 args = parser.parse_args()
 
 word = args.word[0]
@@ -63,8 +81,13 @@ tags = bs4.BeautifulSoup(r.text, 'html.parser').find('div', {'class': 'termWrap'
 
 syn, con = split_syncon(tags)
 
-print(f"\nSINONIMI di {word}")
-print_format(syn)
-
-print(f"CONTRARI di {word}")
-print_format(con)
+if args.json:
+    obj = {'sin': to_json(syn), 'con': to_json(con), 'status': 'ok'}
+    obj['con'].remove('Il dizionario non contiene ancora contrari di test')
+    print(obj)
+else:
+    print(f"\nSINONIMI di {word}")
+    print_format(syn)
+    
+    print(f"CONTRARI di {word}")
+    print_format(con)
