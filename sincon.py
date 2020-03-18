@@ -20,6 +20,7 @@ __license__ = 'GPLv3'
 __version__ = '1.3'
 
 import re
+import json
 import requests
 import sys
 import bs4
@@ -40,18 +41,17 @@ def print_format(res):
                          flags=re.M))
             print()
 
-def to_json(res):
-    r = []
+def to_json(res): # TODO: stolido, cargo
+    r = {}
     for el in res:
         if el['class'][0] == 'search-results':
-            r += re.sub(r'\.$', '', # toglie i punti alla fine, fastidiosi quando si copia una parola
-                         re.sub(r'(lett\.|sm\.|[A-Z]\w+\.|\d+\.)', r'\n\1 ', el.get_text()), # divide in righe le varie definizioni
-                         flags=re.M).split(', ')
+            for li in el.ol.findChildren('li') if el.ol else []:
+                c = li.findChildren('span')
+                r.setdefault(c[0].get_text(), []).extend(c[1].get_text().split(', '))
 
         elif el['class'][0] == 'listOthersTerms':
-            r += re.sub(r'\.$', '',
-                         re.sub(r':', r': ', el.get_text()),
-                         flags=re.M).split(', ')
+            r['altri'] = list(map(lambda x: x.get_text(), el.p.findChildren('a')))
+
     return r
 
 def split_syncon(tags):
@@ -83,8 +83,8 @@ syn, con = split_syncon(tags)
 
 if args.json:
     obj = {'sin': to_json(syn), 'con': to_json(con), 'status': 'ok'}
-    obj['con'].remove('Il dizionario non contiene ancora contrari di test')
-    print(obj)
+    # obj['con'].remove('Il dizionario non contiene ancora contrari di test')
+    print(json.dumps(obj))
 else:
     print(f"\nSINONIMI di {word}")
     print_format(syn)
