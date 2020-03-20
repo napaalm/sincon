@@ -28,20 +28,30 @@ import argparse
 
 WEBSITE = "https://www.sinonimi-contrari.it/"
 
-def print_format(res):
-    for el in res:
-        if el['class'][0] == 'search-results':
-            print(re.sub(r'\.$', '', # toglie i punti alla fine, fastidiosi quando si copia una parola
-                re.sub(r'(p\. u\.|intr\.|lett\.|sm\.|[A-Z]\w+\.|\d+\.)', r'\n\1 ', el.get_text()), # divide in righe le varie definizioni
-                flags=re.M))
-            print()
-        elif el['class'][0] == 'listOthersTerms':
-            print(re.sub(r'\.$', '',
-                re.sub(r':', r': ', el.get_text()),
-                flags=re.M))
-            print()
+def print_format(obj):
+    sin, con = obj['sin'], obj['con']
 
-def to_json(res):
+    print(f"\nSINONIMI di {word}\n")
+
+    for key in sin:
+        if key != 'altri':
+            print(key, ", ".join(sin[key]))
+
+    if 'altri' in sin:
+        print("Altri sinonimi:", ", ".join(sin['altri']))
+
+    print(f"\nCONTRARI di {word}\n")
+
+    for key in con:
+        if key != 'altri':
+            print(key, ", ".join(con[key]))
+
+    if 'altri' in con:
+        print("Altri contrari:", ", ".join(con['altri']))
+
+    print()
+
+def parse(res):
     r = {}
     b = True
     for el in res:
@@ -88,13 +98,9 @@ r = requests.get(WEBSITE+word)
 tags = bs4.BeautifulSoup(r.text, 'html.parser').find('div', {'class': 'termWrap'}).find_all(recursive=False)
 
 syn, con = split_syncon(tags)
+obj = {'sin': parse(syn), 'con': parse(con), 'status': 'ok'}
 
 if args.json:
-    obj = {'sin': to_json(syn), 'con': to_json(con), 'status': 'ok'}
     print(json.dumps(obj))
 else:
-    print(f"\nSINONIMI di {word}")
-    print_format(syn)
-
-    print(f"CONTRARI di {word}")
-    print_format(con)
+    print_format(obj)
