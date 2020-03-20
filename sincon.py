@@ -41,7 +41,7 @@ def print_format(res):
                 flags=re.M))
             print()
 
-def to_json(res): # TODO: stolido, cargo
+def to_json(res):
     r = {}
     b = True
     for el in res:
@@ -91,7 +91,6 @@ syn, con = split_syncon(tags)
 
 if args.json:
     obj = {'sin': to_json(syn), 'con': to_json(con), 'status': 'ok'}
-    # obj['con'].remove('Il dizionario non contiene ancora contrari di test')
     print(json.dumps(obj))
 else:
     print(f"\nSINONIMI di {word}")
