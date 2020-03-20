@@ -36,18 +36,16 @@ def print_format(obj):
     for key in sin:
         if key != 'altri':
             print(key, ", ".join(sin[key]))
-
     if 'altri' in sin:
-        print("Altri sinonimi:", ", ".join(sin['altri']))
+        print("\nAltri sinonimi:", ", ".join(sin['altri']))
 
     print(f"\nCONTRARI di {word}\n")
 
     for key in con:
         if key != 'altri':
             print(key, ", ".join(con[key]))
-
     if 'altri' in con:
-        print("Altri contrari:", ", ".join(con['altri']))
+        print("\nAltri contrari:", ", ".join(con['altri']))
 
     print()
 
