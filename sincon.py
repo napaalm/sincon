@@ -31,7 +31,12 @@ WEBSITE = "https://www.sinonimi-contrari.it/"
 def print_format(obj):
     sin, con = obj['sin'], obj['con']
 
-    print(f"\nSINONIMI di {word}\n")
+    print(f"\nSINONIMI di {word}")
+
+    if len(sin) == 0:
+        print(f"\nIl dizionario non contiene ancora sinonimi di {word}")
+    elif len(sin) != 1 or (len(sin) == 1 and 'altri' not in sin):
+        print()
 
     for key in sin:
         if key != 'altri':
@@ -39,7 +44,12 @@ def print_format(obj):
     if 'altri' in sin:
         print("\nAltri sinonimi:", ", ".join(sin['altri']))
 
-    print(f"\nCONTRARI di {word}\n")
+    print(f"\nCONTRARI di {word}")
+
+    if len(con) == 0:
+        print(f"Il dizionario non contiene ancora contrari di {word}")
+    elif len(con) != 1 or (len(con) == 1 and 'altri' not in con):
+        print()
 
     for key in con:
         if key != 'altri':
