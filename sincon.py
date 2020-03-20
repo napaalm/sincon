@@ -20,6 +20,7 @@ __license__ = 'GPLv3'
 __version__ = '1.3'
 
 import re
+import json
 import requests
 import sys
 import bs4
@@ -27,18 +28,57 @@ import argparse
 
 WEBSITE = "https://www.sinonimi-contrari.it/"
 
-def print_format(res):
+def print_format(obj):
+    sin, con = obj['sin'], obj['con']
+
+    print(f"\nSINONIMI di {word}")
+
+    if len(sin) == 0:
+        print(f"\nIl dizionario non contiene ancora sinonimi di {word}")
+    elif len(sin) != 1 or (len(sin) == 1 and 'altri' not in sin):
+        print()
+
+    for key in sin:
+        if key != 'altri':
+            print(key, ", ".join(sin[key]))
+    if 'altri' in sin:
+        print("\nAltri sinonimi:", ", ".join(sin['altri']))
+
+    print(f"\nCONTRARI di {word}")
+
+    if len(con) == 0:
+        print(f"Il dizionario non contiene ancora contrari di {word}")
+    elif len(con) != 1 or (len(con) == 1 and 'altri' not in con):
+        print()
+
+    for key in con:
+        if key != 'altri':
+            print(key, ", ".join(con[key]))
+    if 'altri' in con:
+        print("\nAltri contrari:", ", ".join(con['altri']))
+
+    print()
+
+def parse(res):
+    r = {}
+    b = True
     for el in res:
         if el['class'][0] == 'search-results':
-            print(re.sub(r'\.$', '', # toglie i punti alla fine, fastidiosi quando si copia una parola
-                         re.sub(r'(p\. u\.|intr\.|lett\.|sm\.|[A-Z]\w+\.|\d+\.)', r'\n\1 ', el.get_text()), # divide in righe le varie definizioni
-                         flags=re.M))
-            print()
+            if (el.p.get_text() if el.p else None) == f'Il dizionario non contiene ancora sinonimi di {word}':
+                b = False
+
+            for li in el.ol.findChildren('li') if el.ol else []:
+                c = li.findChildren('span')
+                r.setdefault(c[0].get_text(), []).extend(c[1].get_text().split(', '))
+
         elif el['class'][0] == 'listOthersTerms':
-            print(re.sub(r'\.$', '',
-                         re.sub(r':', r': ', el.get_text()),
-                         flags=re.M))
-            print()
+            r['altri'] = list(map(lambda x: x.get_text(), el.p.findChildren('a')))
+
+    if b and list(r.keys()) == ['altri']:
+        r['1.'] = r['altri']
+        del r['altri']
+
+    return r
 
 def split_syncon(tags):
     for i in range(len(tags)):
@@ -47,13 +87,17 @@ def split_syncon(tags):
             con = tags[i+1:]
             break
     if 'syn' not in locals():
-        print("La parola cercata non esiste nel dizionario", file=sys.stderr)
+        if args.json:
+            print({'status': 'not found'})
+        else:
+            print("La parola cercata non esiste nel dizionario", file=sys.stderr)
         exit(1)
 
     return (syn[1:], con[1:])
 
 parser = argparse.ArgumentParser(description='Semplice wrapper script che permette di ottenere sinonimi e contrari di una parola da www.sinonimi-contrari.it')
 parser.add_argument('word', type=str, nargs=1, help='parola da cercare')
+parser.add_argument('-j', '--json', action='store_true', help='print output in json')
 args = parser.parse_args()
 
 word = args.word[0]
@@ -62,9 +106,9 @@ r = requests.get(WEBSITE+word)
 tags = bs4.BeautifulSoup(r.text, 'html.parser').find('div', {'class': 'termWrap'}).find_all(recursive=False)
 
 syn, con = split_syncon(tags)
+obj = {'sin': parse(syn), 'con': parse(con), 'status': 'ok'}
 
-print(f"\nSINONIMI di {word}")
-print_format(syn)
-
-print(f"CONTRARI di {word}")
-print_format(con)
+if args.json:
+    print(json.dumps(obj))
+else:
+    print_format(obj)
