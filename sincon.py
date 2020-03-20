@@ -66,7 +66,7 @@ def parse(res):
         elif el['class'][0] == 'listOthersTerms':
             r['altri'] = list(map(lambda x: x.get_text(), el.p.findChildren('a')))
 
-    if b and 'altri' in r:
+    if b and list(r.keys()) == ['altri']:
         r['1.'] = r['altri']
         del r['altri']
 
