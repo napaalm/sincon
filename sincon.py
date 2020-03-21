@@ -88,7 +88,7 @@ def split_syncon(tags):
             break
     if 'syn' not in locals():
         if args.json:
-            print({'status': 'not found'})
+            print(json.dumps({'status': 'not found'}))
         else:
             print("La parola cercata non esiste nel dizionario", file=sys.stderr)
         exit(1)
